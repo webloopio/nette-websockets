@@ -1,0 +1,42 @@
+{
+  "name"			: "webloopio/nette-websockets",
+  "type"			: "library",
+  "description"	    : "Nette extension for implementing flexible yet simple WebSockets server",
+  "keywords"		: ["nette", "websockets", "webbsocket-server", "realtime"],
+  "homepage"		: "https://github.com/webloopio/nette-websockets",
+  "license"		    : ["MIT"],
+  "authors": [
+    {
+      "name"		: "webloop.io",
+      "email"		: "info@webloop.io",
+      "homepage"	: "http://webloop.io/"
+    }
+  ],
+  "require": {
+    "php"	            : ">=7.0.0",
+    "nette/application"	: "~2.4",
+    "nette/di"			: "~2.4",
+    "nette/http"		: "~2.4",
+    "nette/reflection"	: "~2.4",
+    "nette/utils"		: "~2.4",
+    "cboden/ratchet"    : "^0.4.1",
+    "kdyby/console"     : "^2.7"
+  },
+  "require-dev": {
+    "nette/bootstrap"		: "~2.4",
+    "nette/robot-loader"	: "~2.4",
+    "nette/safe-stream"		: "~2.3",
+    "nette/tester"			: "@dev",
+    "nette/tracy"		    : "~2.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Webloopio\\NetteWebsockets\\": [
+        "src/webloopio/"
+      ]
+    },
+    "files": [
+      "src/webloopio/Helper/shortcuts.php"
+    ]
+  }
+}
