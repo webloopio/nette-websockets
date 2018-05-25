@@ -1,0 +1,4 @@
+services:
+    runServerCommand:
+        class: Webloopio\NetteWebsockets\Console\RunServerCommand
+        tags: [kdyby.console.command]

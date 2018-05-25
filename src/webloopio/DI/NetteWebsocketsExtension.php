@@ -52,6 +52,12 @@ class NetteWebsocketsExtension extends CompilerExtension {
             }
         }
 
+        $this->compiler->loadDefinitions(
+            $builder,
+            $this->loadFromFile(__DIR__ . '/services.neon'),
+            $this->name
+        );
+
         $this->setupRunServer();
     }
 
