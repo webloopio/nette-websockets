@@ -11,8 +11,9 @@
 
 namespace Webloopio\Exceptions;
 
-class DispatcherException extends \Exception {}
 
-class DispatcherRuntimeException extends DispatcherException {}
+class ServerException extends \Exception {}
 
-class DispatcherLogicException extends DispatcherException {}
+class ServerRuntimeException extends ServerException {}
+
+class ServerLogicException extends ServerException {}

@@ -11,6 +11,7 @@
 
 namespace Webloopio\Exceptions;
 
+
 class MessageException extends \Exception {}
 
 class MessageRuntimeException extends MessageException {}

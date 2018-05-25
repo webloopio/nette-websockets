@@ -35,6 +35,9 @@
         "src/webloopio/"
       ]
     },
+    "classmap": [
+      "src/webloopio/Exceptions/"
+    ],
     "files": [
       "src/webloopio/Helper/shortcuts.php"
     ]

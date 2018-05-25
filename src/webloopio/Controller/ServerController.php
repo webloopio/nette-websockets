@@ -25,10 +25,10 @@ class ServerController extends Controller {
      *
      * @param ClientCollection $clients
      */
-    public function loopTestLoop( ClientCollection $clients ) {
+    /*public function loopTestLoop( ClientCollection $clients ) {
         foreach( $clients->getClients() as $client ) {
             $this->sendMessage( $client, [ "testLoop" => 1 ] );
         }
-    }
+    }*/
 
 }

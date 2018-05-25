@@ -11,6 +11,7 @@
 
 namespace Webloopio\Exceptions;
 
+
 class ControllerException extends \Exception {}
 
 class ControllerRuntimeException extends ControllerException {}
