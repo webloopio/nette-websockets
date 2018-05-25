@@ -25,10 +25,6 @@ class NetteWebsocketsExtension extends CompilerExtension {
         ]
     ];
 
-    public function beforeCompile () {
-        require_once __DIR__ . '/../Helper/shortcuts.php'; // TODO: přidat do composeru
-    }
-
     public function loadConfiguration() {
         $this->validateConfig( $this->defaults );
         $config = $this->getConfig();
