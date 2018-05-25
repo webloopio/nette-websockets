@@ -9,7 +9,7 @@
  * Since: 0.1
  */
 
-namespace Webloopio\NetteWebsockets;
+namespace Webloopio\NetteWebsockets\Client;
 
 use Ratchet\ConnectionInterface;
 

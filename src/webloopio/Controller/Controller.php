@@ -20,7 +20,7 @@ use Webloopio\Exceptions\ControllerNonExistingMethodException;
 use Webloopio\NetteWebsockets\Helper\StringHelper;
 use Webloopio\NetteWebsockets\Client\ClientCollection;
 use Webloopio\NetteWebsockets\Helper\ParserHelper;
-use Webloopio\NetteWebsockets\IClientConnection;
+use Webloopio\NetteWebsockets\Client\IClientConnection;
 use Webloopio\NetteWebsockets\Server\Message;
 use Webloopio\NetteWebsockets\Server\Server;
 

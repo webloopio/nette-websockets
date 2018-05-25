@@ -13,7 +13,7 @@ namespace Webloopio\NetteWebsockets\Client;
 
 use Ratchet\ConnectionInterface;
 use Webloopio\Exceptions\ClientLogicException;
-use Webloopio\NetteWebsockets\IClientConnection;
+use Webloopio\NetteWebsockets\Client\IClientConnection;
 
 
 /**

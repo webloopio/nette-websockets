@@ -21,7 +21,7 @@ use Webloopio\Exceptions\ServerException;
 use Webloopio\NetteWebsockets\Client\ClientCollection;
 use Webloopio\NetteWebsockets\Controller\ControllerCollection;
 use Webloopio\NetteWebsockets\Controller\ServerController;
-use Webloopio\NetteWebsockets\IClientConnection;
+use Webloopio\NetteWebsockets\Client\IClientConnection;
 
 
 class Dispatcher implements MessageComponentInterface {

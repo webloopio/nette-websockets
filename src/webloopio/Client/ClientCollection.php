@@ -15,7 +15,7 @@ use Ratchet\ConnectionInterface;
 use React\EventLoop\LoopInterface;
 use Webloopio\Exceptions\ClientException;
 use Webloopio\Exceptions\ClientRuntimeException;
-use Webloopio\NetteWebsockets\IClientConnection;
+use Webloopio\NetteWebsockets\Client\IClientConnection;
 
 /**
  * Class ClientCollection
