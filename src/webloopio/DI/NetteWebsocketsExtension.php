@@ -11,7 +11,9 @@
 
 namespace Webloopio\NetteWebsockets\DI;
 
+use Kdyby\Console\DI\ConsoleExtension;
 use Nette\DI\CompilerExtension;
+use Webloopio\NetteWebsockets\Console\RunServerCommand;
 use Webloopio\NetteWebsockets\Helper\StringHelper;
 use Webloopio\NetteWebsockets\Client\ClientCollection;
 use Webloopio\NetteWebsockets\Server\Server;
@@ -52,11 +54,14 @@ class NetteWebsocketsExtension extends CompilerExtension {
             }
         }
 
-        $this->compiler->loadDefinitions(
-            $builder,
-            $this->loadFromFile(__DIR__ . '/services.neon'),
-            $this->name
-        );
+        $commands = [
+            'server' => RunServerCommand::class,
+        ];
+        foreach ($commands as $name => $cmd) {
+            $builder->addDefinition($this->prefix('commands' . lcfirst($name)))
+                    ->setType($cmd)
+                    ->addTag(ConsoleExtension::TAG_COMMAND);
+        }
 
         $this->setupRunServer();
     }
