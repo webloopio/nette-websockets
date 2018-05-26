@@ -39,4 +39,28 @@ interface IEnhancedMessage {
      * @return array|string
      */
     public function buildMessage( bool $json = true );
+
+    /**
+     * @param string $className
+     */
+    public function transformMessageToObject( string $className );
+
+    /**
+     * @return mixed
+     */
+    public function getMessageObject();
+
+    /**
+     * @param $data
+     */
+    public function setMessageObject( $data );
+
+    /**
+     * @return bool
+     */
+    public function isMessageObject(): bool;
+}
+
+interface IMessageObject {
+    public function setData( array $classType );
 }

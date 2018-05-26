@@ -11,6 +11,7 @@
 
 namespace Webloopio\NetteWebsockets\Server;
 
+use Webloopio\Exceptions\MessageLogicException;
 use Webloopio\NetteWebsockets\Helper\StringHelper;
 
 
@@ -25,6 +26,11 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
      * @var array
      */
     protected $messageArray = [];
+
+    /**
+     * @var mixed
+     */
+    private $messageObject = null;
 
     /**
      * @var string
@@ -166,6 +172,59 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
      */
     public function getAction() {
         return $this->action;
+    }
+
+    /**
+     * @return mixed|null
+     */
+    public function getData() {
+        $messageArray = $this->getMessageArray();
+        return $messageArray['data'] ?? null;
+    }
+
+    /**
+     * @param string $className
+     *
+     * @throws MessageLogicException
+     */
+    public function transformMessageToObject( string $className ) {
+        if( !$this->isJson() ) {
+            throw new MessageLogicException( "If you want to transform the message in " . get_class() . " to object, it must be json-like." );
+        }
+        $classInterfaces = class_implements( $className );
+        if( !isset( $classInterfaces[ IMessageObject::class ] ) ) {
+            throw new MessageLogicException( "Providen class name must implement " . IMessageObject::class . " interface" );
+        }
+        /** @var IMessageObject $dataObject */
+        $dataObject = new $className();
+        $dataObject->setData( $this->getData() );
+        $this->setMessageObject( $dataObject );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getMessageObject() {
+        return $this->messageObject;
+    }
+
+    /**
+     * @param $data
+     *
+     * @throws MessageLogicException
+     */
+    public function setMessageObject( $data ) {
+        if( !( $data instanceof IMessageObject ) ) {
+            throw new MessageLogicException( "First parameter must be instance of " . IMessageObject::class );
+        }
+        $this->messageObject = $data;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMessageObject(): bool {
+        return $this->messageObject !== null;
     }
 
 }

@@ -52,11 +52,12 @@ class ControllerCollection {
             );
         }
 
+        $controllerStrippedName = StringHelper::unify( $controllerClassName );
+
         if( NetteWebsocketsExtension::$debug ) {
-            wsdump( "Adding $controllerClassName", null, "green" );
+            wsdump( "Adding $controllerStrippedName : $controllerClassName", null, "green" );
         }
 
-        $controllerStrippedName = StringHelper::unify( $controllerClassName );
         $this->controllerInstances[$controllerStrippedName] = $controllerInstance;
 
         return $this;

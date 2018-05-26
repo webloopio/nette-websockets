@@ -23,7 +23,7 @@ class NetteWebsocketsExtension extends CompilerExtension {
 
     const TAG_CONTROLLER = 'webloopio.nettews.controller';
 
-    static public $debug = true;
+    static public $debug = false;
 
     private $defaults = [
         "controllers" => [

@@ -21,6 +21,8 @@ use Webloopio\NetteWebsockets\Helper\StringHelper;
 use Webloopio\NetteWebsockets\Client\ClientCollection;
 use Webloopio\NetteWebsockets\Helper\ParserHelper;
 use Webloopio\NetteWebsockets\Client\IClientConnection;
+use Webloopio\NetteWebsockets\Server\IMessage;
+use Webloopio\NetteWebsockets\Server\IMessageObject;
 use Webloopio\NetteWebsockets\Server\Message;
 use Webloopio\NetteWebsockets\Server\Server;
 
@@ -51,6 +53,8 @@ class Controller {
      *
      * @return void
      * @throws ControllerNonExistingMethodException
+     * @throws \ReflectionException
+     * @throws \Webloopio\Exceptions\MessageLogicException
      */
     public function call( string $action, IClientConnection $client, Message $message ) {
         // convert underscore
@@ -61,6 +65,27 @@ class Controller {
 
         if( !method_exists( $this, $methodName ) ) {
             throw new ControllerNonExistingMethodException( "The method {$methodName} called in " . __CLASS__ . " does not exists" );
+        }
+
+        // if call method has type in it's first $data parameter
+        // we will use it to createdata wrapper from received request $data
+        // You can use this to create your own wrapper simply by implementing IApiData interface or extending ApiData
+        // and providing appropriate param class type in your api method
+        // Wrapper classes are created from method first parameter reflection
+        $callMethodDataParamReflection = new \ReflectionParameter( [ $this, $methodName ], 1 );
+
+        if( $callMethodDataParamReflection->hasType() ) {
+            // get type hint name
+            $callMethodDataParamType = $callMethodDataParamReflection->getType()->getName();
+            if( class_exists( $callMethodDataParamType ) ) {
+                // check if that class type is implementing IMessageObject interface
+                $callMethodDataParamTypeInterfaces = class_implements( $callMethodDataParamType );
+                if( isset( $callMethodDataParamTypeInterfaces[ IMessageObject::class ] ) ) {
+                    $message->transformMessageToObject( $callMethodDataParamType );
+                    call_user_func( [ $this, $methodName ], $client, $message->getMessageObject(), $message );
+                    return;
+                }
+            }
         }
 
         call_user_func( [ $this, $methodName ], $client, $message );
