@@ -71,10 +71,10 @@ class Dispatcher implements MessageComponentInterface {
             $controllerActionName = $message->getAction();
             $controllerInstance = $this->controllerCollection->getControllerInstance( $controllerName );
 
-            wsdump( "Received new message from resourceId {$connection->resourceId}", $message->getMessage() );
+            wsdump( $message->getMessage(), "Received new message from resourceId {$connection->resourceId}" );
 
             if( $controllerInstance === null ) {
-                wsdump("erro", $this->controllerCollection->getControllerInstances());
+                wsdump( $this->controllerCollection->getControllerInstances(), "error" );
                 throw new ControllerRuntimeException( "Controller was not found by given name: $controllerName" );
             }
 
