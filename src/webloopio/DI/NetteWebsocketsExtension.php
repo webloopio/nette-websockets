@@ -44,7 +44,7 @@ class NetteWebsocketsExtension extends CompilerExtension {
 
         // instantiate all Controllers defined in config
         foreach( $controllers as $controller ) {
-            if( is_string( $controller ) ) {
+            if( !is_string( $controller ) ) {
                 throw new \RuntimeException("Defined controller must by type of string, type of " . gettype($controller) . " provided instead");
             }
             if( !class_exists( $controller ) ) {

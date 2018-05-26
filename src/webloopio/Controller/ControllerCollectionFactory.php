@@ -64,7 +64,7 @@ class ControllerCollectionFactory {
 
         // add controllers registered by tag
         foreach( $this->container->findByTag( NetteWebsocketsExtension::TAG_CONTROLLER ) as $controllerName => $tags ) {
-            $controllerInstance = $this->container->getByType( $controllerName );
+            $controllerInstance = $this->container->getService( $controllerName );
             $controllerCollection->addControllerInstance( $controllerInstance );
         }
 
