@@ -14,8 +14,16 @@ if ( !function_exists( 'wsdump' ) ) {
     /**
      * Webloopio\NetteWebsockets\Debugger\WSDebugger::dump() shortcut.
      * @tracySkipLocation
+     *
+     * @param $var
+     * @param string|null $name
+     * @param string|null $foregroundColor
      */
-    function wsdump() {
+    function wsdump(
+        $var,
+        string $name = null,
+        string $foregroundColor = null
+    ) {
         call_user_func_array( 'Webloopio\NetteWebsockets\Debugger\WSDebugger::dump', func_get_args() );
     }
 }

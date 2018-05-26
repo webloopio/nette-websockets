@@ -21,6 +21,10 @@ use Webloopio\NetteWebsockets\Server\Server;
 
 class NetteWebsocketsExtension extends CompilerExtension {
 
+    const TAG_CONTROLLER = 'webloopio.nettews.controller';
+
+    static public $debug = true;
+
     private $defaults = [
         "controllers" => [
             "Webloopio\NetteWebsockets\Controller\ServerController"
@@ -38,6 +42,7 @@ class NetteWebsocketsExtension extends CompilerExtension {
         $builder->addDefinition( $this->prefix( "clientCollection" ) )
                 ->setFactory( ClientCollection::class );
 
+        // instantiate all Controllers defined in config
         foreach( $controllers as $controller ) {
             if( is_string( $controller ) ) {
                 throw new \RuntimeException("Defined controller must by type of string, type of " . gettype($controller) . " provided instead");
@@ -51,7 +56,6 @@ class NetteWebsocketsExtension extends CompilerExtension {
             $builder->addDefinition( $this->prefix( $controllerTrimmedName ) )
                     ->setFactory( $controller )
                     ->setInject( true );
-
         }
 
         // setup server (kdyby) commands

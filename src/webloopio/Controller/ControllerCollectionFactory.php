@@ -13,6 +13,7 @@ namespace Webloopio\NetteWebsockets\Controller;
 
 use Nette\DI\Container;
 use Webloopio\Exceptions\ControllerLogicException;
+use Webloopio\NetteWebsockets\DI\NetteWebsocketsExtension;
 
 
 class ControllerCollectionFactory {
@@ -48,6 +49,7 @@ class ControllerCollectionFactory {
     public function create(): ControllerCollection {
         $controllerCollection = new ControllerCollection();
 
+        // add controllers registered by config
         foreach( $this->controllerFullyQualifiedNames as $controllerName ) {
             // try to find instantiated service in Nette DI container
             $controllerInstance = $this->container->getByType( $controllerName );
@@ -57,6 +59,12 @@ class ControllerCollectionFactory {
             }
 
             // if successfully found add it to collection
+            $controllerCollection->addControllerInstance( $controllerInstance );
+        }
+
+        // add controllers registered by tag
+        foreach( $this->container->findByTag( NetteWebsocketsExtension::TAG_CONTROLLER ) as $controllerName => $tags ) {
+            $controllerInstance = $this->container->getByType( $controllerName );
             $controllerCollection->addControllerInstance( $controllerInstance );
         }
 

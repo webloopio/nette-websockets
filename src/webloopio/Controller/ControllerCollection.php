@@ -13,6 +13,7 @@ namespace Webloopio\NetteWebsockets\Controller;
 
 use React\EventLoop\LoopInterface;
 use Webloopio\Exceptions\ControllerLogicException;
+use Webloopio\NetteWebsockets\DI\NetteWebsocketsExtension;
 use Webloopio\NetteWebsockets\Helper\StringHelper;
 
 
@@ -42,6 +43,17 @@ class ControllerCollection {
 
         if( isset( $this->controllerInstances[$controllerClassName] ) ) {
             throw new ControllerLogicException( "$controllerClassName instance already exists in collection" );
+        }
+
+        if( !( $controllerInstance instanceof Controller ) ) {
+            throw new ControllerLogicException(
+                "Controller must by instance of " . Controller::class . ". 
+                    Instance of " . get_class( $controllerInstance ) . " provided instead"
+            );
+        }
+
+        if( NetteWebsocketsExtension::$debug ) {
+            wsdump( "Adding $controllerClassName", null, "green" );
         }
 
         $controllerStrippedName = StringHelper::unify( $controllerClassName );
