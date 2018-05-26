@@ -34,58 +34,40 @@ class NetteWebsocketsExtension extends CompilerExtension {
 
         $controllers = $config["controllers"];
 
-        $this->setupControllerDependencies();
+        // setup Controller dependencies
+        $builder->addDefinition( $this->prefix( "clientCollection" ) )
+                ->setFactory( ClientCollection::class );
 
         foreach( $controllers as $controller ) {
             if( is_string( $controller ) ) {
-                if( !class_exists( $controller ) ) {
-                    throw new \LogicException( "Controller class $controller does not exists" );
-                }
-
-                $controllerTrimmedName = lcfirst( StringHelper::trimNamespace( $controller ) );
-
-                $builder->addDefinition( $this->prefix( $controllerTrimmedName ) )
-                        ->setFactory( $controller )
-                        ->setInject( true );
-
+                throw new \RuntimeException("Defined controller must by type of string, type of " . gettype($controller) . " provided instead");
             }
-            else {
-                throw new \RuntimeException( "Defined controller must by type of string, type of " . gettype( $controller ) . " provided instead" );
+            if( !class_exists( $controller ) ) {
+                throw new \LogicException( "Controller class $controller does not exists" );
             }
+
+            $controllerTrimmedName = lcfirst( StringHelper::trimNamespace( $controller ) );
+
+            $builder->addDefinition( $this->prefix( $controllerTrimmedName ) )
+                    ->setFactory( $controller )
+                    ->setInject( true );
+
         }
 
+        // setup server (kdyby) commands
         $commands = [
             'server' => RunServerCommand::class,
         ];
-        foreach ($commands as $name => $cmd) {
-            $builder->addDefinition($this->prefix('commands' . lcfirst($name)))
-                    ->setType($cmd)
-                    ->addTag(ConsoleExtension::TAG_COMMAND);
+        foreach( $commands as $name => $command ) {
+            $builder->addDefinition( $this->prefix( 'command.' . lcfirst( $name ) ) )
+                    ->setType( $command )
+                    ->addTag( ConsoleExtension::TAG_COMMAND );
         }
 
-        $this->setupRunServer();
-    }
-
-    /**
-     * Setup of the main websockets server
-     * We're passing down registered controller names
-     *
-     * @return void
-     */
-    private function setupRunServer() {
-        $builder = $this->getContainerBuilder();
-
-        $config = $this->getConfig();
-
+        // Setup of the main websockets server
+        // We're passing down registered controller names
         $builder->addDefinition( $this->prefix( "server" ) )
                 ->setFactory( Server::class, [ $config['controllers'] ] );
-    }
-
-    private function setupControllerDependencies() {
-        $builder = $this->getContainerBuilder();
-
-        $builder->addDefinition( $this->prefix( "clientCollection" ) )
-                ->setFactory( ClientCollection::class );
     }
 
 }
