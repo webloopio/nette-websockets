@@ -20,7 +20,8 @@
     "nette/reflection"	: "~2.4",
     "nette/utils"		: "~2.4",
     "cboden/ratchet"    : "^0.4.1",
-    "kdyby/console"     : "^2.7"
+    "kdyby/console"     : "^2.7",
+    "gedmo/doctrine-extensions": "^2.4"
   },
   "require-dev": {
     "nette/bootstrap"		: "~2.4",
@@ -37,7 +38,8 @@
       ]
     },
     "classmap": [
-      "src/webloopio/Exceptions/"
+      "src/webloopio/Exceptions/",
+      "src/webloopio/Server/IMessage.php"
     ],
     "files": [
       "src/webloopio/Helper/shortcuts.php"
