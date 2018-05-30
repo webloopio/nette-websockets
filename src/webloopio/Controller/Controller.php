@@ -98,7 +98,27 @@ class Controller {
      */
     public function sendMessage( IClientConnection $client, $data, string $action = null ) {
         $message = new Message( $data, $this->getName(), $action ? $action : $this->getActionName() );
-        $client->send( $message->buildMessage() );
+        $buildedMessage = $message->buildMessage();
+        wsdump( $buildedMessage, "sending message" );
+        $client->send( $buildedMessage );
+    }
+
+    /**
+     * @param IClientConnection $client
+     * @param Message $senderMessage
+     * @param $data
+     *
+     * @throws ControllerLogicException
+     */
+    public function sendResponse( IClientConnection $client, Message $senderMessage, $data ) {
+        $senderMessageHash = $senderMessage->getHash();
+        if( !$senderMessageHash ) {
+            throw new ControllerLogicException( "If you want to send response on your message you must specify it's hash" );
+        }
+        $message = new Message( $data, $senderMessage->getController(), $senderMessage->getAction(), $senderMessageHash );
+        $buildedMessage = $message->buildMessage();
+        wsdump( $buildedMessage, "sending response message" );
+        $client->send( $buildedMessage );
     }
 
     /**
@@ -225,7 +245,7 @@ class Controller {
     public function getActionName(): string {
         $action = "";
         $trace = debug_backtrace();
-        $blackListMethods = [ "sendMessage" ]; // omit these method caller names when searching for caller
+        $blackListMethods = [ "sendMessage", "sendReponse" ]; // omit these method caller names when searching for caller
 
         // if there is a method to omit in trace index 1, continue to index 2 caller method
         // TODO: make it smarter - for loop

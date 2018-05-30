@@ -12,12 +12,17 @@
 namespace Webloopio\NetteWebsockets\Controller;
 
 use Webloopio\NetteWebsockets\Client\ClientCollection;
+use Webloopio\NetteWebsockets\Server\Message;
 
 
 class ServerController extends Controller {
 
-    public function actionTest( $client, $data ) {
-        $this->sendMessage( $client, [ "ahoj" => "works" ] );
+    public function actionTest( $client, Message $data ) {
+        $this->sendMessage( $client, [ "action" => "works" ] );
+    }
+
+    public function actionResponse( $client, Message $message ) {
+        $this->sendResponse( $client, $message, [ "response" => "works" ] );
     }
 
     /**

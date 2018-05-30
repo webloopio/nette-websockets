@@ -48,16 +48,23 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
     protected $action = null;
 
     /**
+     * @var null|string
+     */
+    private $hash = null;
+
+    /**
      * Message constructor.
      *
      * @param array|string $message
      * @param string|null $controller
      * @param string|null $action
+     * @param string|null $hash
      */
     public function __construct(
         $message,
         string $controller = null,
-        string $action = null
+        string $action = null,
+        string $hash = null
     ) {
         if( is_string( $message ) ) {
             $this->messageString = $message;
@@ -75,6 +82,7 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
         if( $this->isJson() ) {
             $controller = $this->messageArray['controller'] ?? $controller;
             $action = $this->messageArray['action'] ?? $action;
+            $hash = $this->messageArray['hash'] ?? $hash;
         }
 
         if( $controller ) {
@@ -82,6 +90,9 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
         }
         if( $action ) {
             $this->setAction( $action );
+        }
+        if( $hash ) {
+            $this->setHash( $hash );
         }
     }
 
@@ -104,13 +115,15 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
     public function buildMessage( bool $json = true ) {
         $controller = $this->getController();
         $action = $this->getAction();
-        $event = ( $controller ? $controller . "/" : "" ) . $action;
+        $hash = $this->getHash();
+        $event = ( $controller ? $controller . "/" : "" ) . $action . ( $hash ? "-$$" . $hash . "$$" : "" );
 
         $message = [
             'event' => $event,
             'data' => $this->getMessage(),
             'callerController' => $controller,
-            'callerAction' => $action
+            'callerAction' => $action,
+            'callerHash' => $hash,
         ];
 
         return $json ? json_encode( $message ) : $message;
@@ -225,6 +238,20 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
      */
     public function isMessageObject(): bool {
         return $this->messageObject !== null;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getHash() {
+        return $this->hash;
+    }
+
+    /**
+     * @param null|string $hash
+     */
+    public function setHash( string $hash ) {
+        $this->hash = $hash;
     }
 
 }
