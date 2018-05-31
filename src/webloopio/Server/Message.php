@@ -38,19 +38,24 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
     protected $isMessageJson = null;
 
     /**
-     * @var null|string
+     * @var string|null
      */
     protected $controller = null;
 
     /**
-     * @var null|string
+     * @var string|null
      */
     protected $action = null;
 
     /**
-     * @var null|string
+     * @var string|null
      */
     private $hash = null;
+
+    /**
+     * @var string|null
+     */
+    private $token = null;
 
     /**
      * Message constructor.
@@ -66,6 +71,7 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
         string $action = null,
         string $hash = null
     ) {
+        $token = null;
         if( is_string( $message ) ) {
             $this->messageString = $message;
 
@@ -83,6 +89,7 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
             $controller = $this->messageArray['controller'] ?? $controller;
             $action = $this->messageArray['action'] ?? $action;
             $hash = $this->messageArray['hash'] ?? $hash;
+            $token = $this->messageArray['token'] ?? $token;
         }
 
         if( $controller ) {
@@ -93,6 +100,9 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
         }
         if( $hash ) {
             $this->setHash( $hash );
+        }
+        if( $token ) {
+            $this->token = $token;
         }
     }
 
@@ -193,6 +203,13 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
     public function getData() {
         $messageArray = $this->getMessageArray();
         return $messageArray['data'] ?? null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getToken() {
+        return $this->token;
     }
 
     /**

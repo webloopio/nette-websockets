@@ -17,11 +17,15 @@ use Tracy\Debugger;
 use Webloopio\Exceptions\ControllerException;
 use Webloopio\Exceptions\ControllerNonExistingMethodException;
 use Webloopio\Exceptions\ControllerRuntimeException;
+use Webloopio\Exceptions\DispatcherLogicException;
 use Webloopio\Exceptions\ServerException;
 use Webloopio\NetteWebsockets\Client\ClientCollection;
+use Webloopio\NetteWebsockets\Client\IAuthenticator;
+use Webloopio\NetteWebsockets\Client\IJWTAuthenticator;
 use Webloopio\NetteWebsockets\Controller\ControllerCollection;
 use Webloopio\NetteWebsockets\Controller\ServerController;
 use Webloopio\NetteWebsockets\Client\IClientConnection;
+use Webloopio\NetteWebsockets\DI\NetteWebsocketsExtension;
 
 
 class Dispatcher implements MessageComponentInterface {
@@ -36,10 +40,15 @@ class Dispatcher implements MessageComponentInterface {
      */
     protected $controllerCollection;
 
+    /**
+     * Dispatcher constructor.
+     *
+     * @param ControllerCollection $controllerCollection
+     * @param ClientCollection $clientCollection
+     */
     public function __construct(
         ControllerCollection $controllerCollection,
         ClientCollection $clientCollection
-
     ) {
         $this->controllerCollection = $controllerCollection;
         $this->clientCollection = $clientCollection;
@@ -62,11 +71,29 @@ class Dispatcher implements MessageComponentInterface {
     /**
      * @param ConnectionInterface $connection
      * @param $message
+     *
+     * @throws \ReflectionException
+     * @throws \Webloopio\Exceptions\MessageLogicException
      */
     public function onMessage( ConnectionInterface $connection, $message ) {
         try {
             $clientConnection = $this->clientCollection->getClientByConnection( $connection );
             $message = new Message( $message );
+            $userToken = $message->getToken();
+
+            wsdump( $userToken, "token123" );
+            wsdump( $message );
+
+            if( $userToken ) {
+                try {
+                    $clientConnection->verifyToken( $userToken );
+                }
+                catch( \Exception $e ) {
+                    // if verification has failed for any reason, we gonna logout user
+                    $clientConnection->logout();
+                }
+            }
+
             $controllerName = $message->getController();
             $controllerActionName = $message->getAction();
             $controllerInstance = $this->controllerCollection->getControllerInstance( $controllerName );

@@ -17,6 +17,7 @@ use Webloopio\NetteWebsockets\Client\ClientCollection;
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
+use Webloopio\NetteWebsockets\Client\IAuthenticator;
 use Webloopio\NetteWebsockets\Controller\ControllerCollection;
 use Webloopio\NetteWebsockets\Controller\ControllerCollectionFactory;
 
@@ -67,22 +68,37 @@ class Server {
     public static $debug = true;
 
     const DEBUG_LOGGER_NAME = "nette_websockets";
+    /**
+     * @var IAuthenticator
+     */
+    private $authenticator;
+
+    /**
+     * @var null|string
+     */
+    private $authenticationType;
 
     /**
      * Server constructor.
      *
      * @param array $controllerNames
+     * @param string|null $authentication
      * @param Container $container
      * @param ClientCollection $clientCollection
+     * @param IAuthenticator $authenticator
      */
     function __construct(
         array $controllerNames,
+        $authentication,
         Container $container,
-        ClientCollection $clientCollection
+        ClientCollection $clientCollection,
+        IAuthenticator $authenticator
     ) {
         $this->container = $container;
         $this->controllerNames = $controllerNames;
         $this->clientCollection = $clientCollection;
+        $this->authenticationType = $authentication;
+        $this->authenticator = $authenticator;
     }
 
     /**
@@ -90,7 +106,12 @@ class Server {
      */
     private function boostrap() {
         $this->controllerCollection = (new ControllerCollectionFactory( $this->container, $this->controllerNames ))->create();
-        $this->dispatcher = new Dispatcher( $this->controllerCollection, $this->clientCollection );
+        $this->dispatcher = new Dispatcher(
+            $this->controllerCollection,
+            $this->clientCollection,
+            $this->authenticationType,
+            $this->authenticator
+        );
         $this->wsServer = new WsServer( $this->dispatcher );
         $this->httpServer = new HttpServer( $this->wsServer );
         $this->server = IoServer::factory( $this->httpServer, static::$settingPort, '127.0.0.1' );

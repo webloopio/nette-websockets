@@ -13,6 +13,8 @@ namespace Webloopio\NetteWebsockets\DI;
 
 use Kdyby\Console\DI\ConsoleExtension;
 use Nette\DI\CompilerExtension;
+use Webloopio\NetteWebsockets\Client\IAuthenticator;
+use Webloopio\NetteWebsockets\Client\IJWTAuthenticator;
 use Webloopio\NetteWebsockets\Console\RunServerCommand;
 use Webloopio\NetteWebsockets\Helper\StringHelper;
 use Webloopio\NetteWebsockets\Client\ClientCollection;
@@ -23,12 +25,15 @@ class NetteWebsocketsExtension extends CompilerExtension {
 
     const TAG_CONTROLLER = 'webloopio.nettews.controller';
 
+    const AUTHENTICATION_JWT = 'jwt';
+
     static public $debug = false;
 
     private $defaults = [
         "controllers" => [
             "Webloopio\NetteWebsockets\Controller\ServerController"
-        ]
+        ],
+        "authentication" => null,
     ];
 
     public function loadConfiguration() {
@@ -37,10 +42,17 @@ class NetteWebsocketsExtension extends CompilerExtension {
         $builder = $this->getContainerBuilder();
 
         $controllers = $config["controllers"];
+        $authenticationType = $config["authentication"];
+
+        $clientCollectionDeps = [];
+        $clientCollectionDeps[] = $authenticationType;
+        if( $authenticationType === self::AUTHENTICATION_JWT ) {
+            $clientCollectionDeps[] = "@" . IJWTAuthenticator::class;
+        }
 
         // setup Controller dependencies
         $builder->addDefinition( $this->prefix( "clientCollection" ) )
-                ->setFactory( ClientCollection::class );
+                ->setFactory( ClientCollection::class, $clientCollectionDeps );
 
         // instantiate all Controllers defined in config
         foreach( $controllers as $controller ) {
@@ -71,7 +83,7 @@ class NetteWebsocketsExtension extends CompilerExtension {
         // Setup of the main websockets server
         // We're passing down registered controller names
         $builder->addDefinition( $this->prefix( "server" ) )
-                ->setFactory( Server::class, [ $config['controllers'] ] );
+                ->setFactory( Server::class, [ $config['controllers'], $config['authentication'] ] );
     }
 
 }

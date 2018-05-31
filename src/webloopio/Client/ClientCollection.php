@@ -11,6 +11,7 @@
 
 namespace Webloopio\NetteWebsockets\Client;
 
+use Nette\Security\IIdentity;
 use Ratchet\ConnectionInterface;
 use React\EventLoop\LoopInterface;
 use Webloopio\Exceptions\ClientException;
@@ -29,16 +30,43 @@ class ClientCollection implements \Countable {
 
     private $clients = [];
 
+    private $authenticator;
+
+    /**
+     * @var null
+     */
+    private $authenticationType;
+
+    /**
+     * ClientCollection constructor.
+     *
+     * @param null $authenticationType
+     * @param IAuthenticator|null $authenticator
+     */
+    function __construct(
+        $authenticationType = null,
+        IAuthenticator $authenticator = null
+    ) {
+        $this->authenticationType = $authenticationType;
+        $this->authenticator = $authenticator;
+    }
+
     /**
      * @param ConnectionInterface $connection
-     * @param int $userId
+     * @param IIdentity|null $identity
      *
      * @return null|IClientConnection
      */
-    public function addClient( ConnectionInterface $connection, int $userId = 0 ) : ?IClientConnection {
+    public function addClient( ConnectionInterface $connection, IIdentity $identity = null ) {
         try {
             // TODO: handling multiple connections with same id
-            $client          = new Client( $connection, $userId );
+            $client = new Client( $connection, $identity );
+
+            // set authenticator, if exists
+            if( $this->authenticationType && $this->authenticator ) {
+                $client->setAuthenticator( $this->authenticationType, $this->authenticator );
+            }
+
             $this->clients[] = $client;
 
             return $client;
@@ -53,7 +81,7 @@ class ClientCollection implements \Countable {
      * @param $byWhat
      * @param string $flag
      */
-    public function removeClient( $byWhat, string $flag = "connection" ) : void {
+    public function removeClient( $byWhat, string $flag = "connection" ) {
         $client = null;
 
         if( $flag === "connection" ) {
@@ -87,11 +115,17 @@ class ClientCollection implements \Countable {
      *
      * @return null|IClientConnection
      */
-    public function getClientByConnection( ConnectionInterface $connection ) : ?IClientConnection {
-        if( $connection instanceof IClientConnection )
-            $users = array_filter( $this->clients, function( Client $user ) use( $connection ) { return $user === $connection; } );
-        else
-            $users = array_filter( $this->clients, function( Client $user ) use( $connection ) { return $user->getConnection() === $connection; } );
+    public function getClientByConnection( ConnectionInterface $connection ) {
+        if( $connection instanceof IClientConnection ) {
+            $users = array_filter($this->clients, function ( Client $user ) use ( $connection ) {
+                return $user === $connection;
+            });
+        }
+        else {
+            $users = array_filter($this->clients, function ( Client $user ) use ( $connection ) {
+                return $user->getConnection() === $connection;
+            });
+        }
 
         return $users ? reset( $users ) : null;
     }
@@ -101,7 +135,7 @@ class ClientCollection implements \Countable {
      *
      * @return null|IClientConnection
      */
-    public function getClientByUserId( int $userId ) : ?IClientConnection {
+    public function getClientByUserId( int $userId ) {
         $users = array_filter( $this->clients, function( Client $user ) use( $userId ) { return $user->getUserId() === $userId; } );
         return $users ? reset( $users ) : null;
     }
@@ -111,7 +145,7 @@ class ClientCollection implements \Countable {
      *
      * @return null|IClientConnection
      */
-    public function getClientByResourceId( int $resourceId ) : ?IClientConnection {
+    public function getClientByResourceId( int $resourceId ) {
         $users = array_filter( $this->clients, function( Client $user ) use( $resourceId ) { return $user->getResourceId() === $resourceId; } );
         return $users ? reset( $users ) : null;
     }
@@ -119,7 +153,7 @@ class ClientCollection implements \Countable {
     /**
      * @return Client[]
      */
-    public function getClients() : array {
+    public function getClients(): array {
         return $this->clients;
     }
 

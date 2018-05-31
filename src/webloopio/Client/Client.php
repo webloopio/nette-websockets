@@ -11,9 +11,14 @@
 
 namespace Webloopio\NetteWebsockets\Client;
 
+use Nette\Security\AuthenticationException;
+use Nette\Security\Identity;
+use Nette\Security\IIdentity;
 use Ratchet\ConnectionInterface;
 use Webloopio\Exceptions\ClientLogicException;
+use Webloopio\Exceptions\ClientRuntimeException;
 use Webloopio\NetteWebsockets\Client\IClientConnection;
+use Webloopio\NetteWebsockets\DI\NetteWebsocketsExtension;
 
 
 /**
@@ -31,30 +36,49 @@ class Client implements IClientConnection {
      */
     private $resourceId;
     /**
-     * @var int - id of user in allstars system
+     * @var string|null
      */
     private $userId;
     /**
-     * @var string|null - name of presenter in allstars system
+     * @var string|null
      */
     private $presenterName;
     /**
-     * @var int|null - id of page in allstars system
+     * @var int|null
      */
     private $pageId;
+    /**
+     * @var bool
+     */
+    private $isLoggedIn = false;
+    /**
+     * @var IAuthenticator|null
+     */
+    private $authenticator;
+    /**
+     * @var string|null
+     */
+    private $authenticatorType;
+    /**
+     * @var IIdentity|null
+     */
+    private $identity;
 
     /**
      * Client constructor.
      *
      * @param ConnectionInterface $connection
-     * @param int $userId
+     * @param IIdentity|null $identity
      *
      * @throws ClientLogicException
      */
-    function __construct( ConnectionInterface $connection, int $userId = 0 ) {
+    function __construct(
+        ConnectionInterface $connection,
+        IIdentity $identity = null
+    ) {
         $this->connection = $connection;
         $this->resourceId = $connection->resourceId ?? null;
-        $this->userId = $userId;
+        $this->identity = $identity;
 
         if( $this->resourceId === null ) {
             throw new ClientLogicException("No resource id was provided in connection. Can't create object.");
@@ -76,10 +100,25 @@ class Client implements IClientConnection {
     }
 
     /**
-     * @return int
+     * @return string|null
      */
-    public function getUserId(): int {
-        return $this->userId;
+    public function getUserId() {
+        return $this->getIdentity()->getId();
+    }
+
+    /**
+     * @return array
+     */
+    public function getUserRoles(): array {
+        return $this->getIdentity()->getRoles();
+    }
+
+    /**
+     * @return array
+     */
+    public function getUserIdentityData(): array {
+        $identity = $this->getIdentity();
+        return method_exists( $identity, 'getData' ) ? $identity->getData() : [];
     }
 
     /**
@@ -94,13 +133,6 @@ class Client implements IClientConnection {
      */
     final public function close() {
         $this->connection->close();
-    }
-
-    /**
-     * @param int $userId
-     */
-    public function setUserId( int $userId ) {
-        $this->userId = $userId;
     }
 
     /**
@@ -127,8 +159,111 @@ class Client implements IClientConnection {
     /**
      * @param int $pageId
      */
-    public function setPageId(int $pageId) {
+    public function setPageId( int $pageId ) {
         $this->pageId = $pageId;
     }
+
+    /**
+     * Login user by providing his credentials
+     *
+     * @param $login
+     * @param $password
+     *
+     * @return IIdentity|false - false when login failed
+     */
+    public function login( $login, $password ) {
+        try {
+            $identity = $this->authenticator->authenticate([
+                $login, $password
+            ]);
+            $this->identity = $identity;
+            $this->isLoggedIn = true;
+            return $identity;
+        }
+        catch( AuthenticationException $e ) {
+            wsdump("Bad login");
+        }
+        return false;
+    }
+
+    /**
+     * Check if user was logged in
+     * @return bool
+     */
+    public function isLoggedIn(): bool {
+        return $this->isLoggedIn;
+    }
+
+    /**
+     * Logouts user
+     */
+    public function logout() {
+        $this->identity = null;
+        $this->isLoggedIn = false;
+    }
+
+    /**
+     * @return IIdentity|null
+     */
+    public function getIdentity() {
+        return $this->identity;
+    }
+
+    /**
+     * @param $token
+     *
+     * @throws ClientLogicException
+     * @throws ClientRuntimeException
+     */
+    public function verifyToken( string $token ) {
+        if( !$token ) {
+            throw new ClientLogicException( "Token can't be empty" );
+        }
+        if( $this->authenticator === null ) {
+            throw new ClientLogicException( "An authenticator must be set" );
+        }
+
+        $authenticatorImplementations = class_implements( $this->authenticator );
+
+        if( $this->authenticatorType === NetteWebsocketsExtension::AUTHENTICATION_JWT ) {
+            if( !isset( $authenticatorImplementations[ IJWTAuthenticator::class ] ) ) {
+                throw new ClientLogicException( "Authenticator must implement " . IJWTAuthenticator::class . " interface" );
+            }
+            /** @var IJWTAuthenticator $jwtAuthenticator */
+            $jwtAuthenticator = $this->authenticator;
+            $result = $jwtAuthenticator->verifyToken( $token );
+            if( $result === false ) {
+                $this->logout();
+                wsdump( "Token verify has failed, therefore logging out" );
+            }
+            else {
+                $result = (array) $result;
+                wsdump( $result, "Token verify is ok" );
+                if( !$this->isLoggedIn() ) {
+                    wsdump( "Was not logged in, but token was verified therefore logging back." );
+                    $userId = $result[IJWTAuthenticator::USER_ID_TOKEN_PAYLOAD_KEY] ?? null;
+                    $userRoles = $result[IJWTAuthenticator::USER_ROLES_TOKEN_PAYLOAD_KEY] ?? [];
+                    $userData = [];
+                    if( !$userId ) {
+                        throw new ClientLogicException( "When re-logging client from JWT token the " . IJWTAuthenticator::USER_ID_TOKEN_PAYLOAD_KEY . " key must be set and not empty in token payload." );
+                    }
+                    $this->identity = new Identity( $userId, $userRoles, $userData );
+                }
+            }
+        }
+        else {
+            throw new ClientRuntimeException( "Authentication type {$this->authenticatorType} is not allowed." );
+        }
+    }
+
+    /**
+     * @param $authenticatorType
+     * @param IAuthenticator $authenticator
+     */
+    public function setAuthenticator( $authenticatorType, IAuthenticator $authenticator ) {
+        $this->authenticatorType = $authenticatorType;
+        $this->authenticator = $authenticator;
+    }
+
 }
 
