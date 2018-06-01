@@ -106,12 +106,7 @@ class Server {
      */
     private function boostrap() {
         $this->controllerCollection = (new ControllerCollectionFactory( $this->container, $this->controllerNames ))->create();
-        $this->dispatcher = new Dispatcher(
-            $this->controllerCollection,
-            $this->clientCollection,
-            $this->authenticationType,
-            $this->authenticator
-        );
+        $this->dispatcher = new Dispatcher( $this->controllerCollection, $this->clientCollection );
         $this->wsServer = new WsServer( $this->dispatcher );
         $this->httpServer = new HttpServer( $this->wsServer );
         $this->server = IoServer::factory( $this->httpServer, static::$settingPort, '127.0.0.1' );
