@@ -103,7 +103,7 @@ class Client implements IClientConnection {
      * @return string|null
      */
     public function getUserId() {
-        return $this->getIdentity()->getId();
+        return $this->getIdentity() ? $this->getIdentity()->getId() : null;
     }
 
     /**
