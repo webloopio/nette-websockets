@@ -48,9 +48,11 @@ class WSDebugger {
         'white' => '1;37',
     ];
 
+    public static $onDump = [];
+
     public static function dump(
         $var,
-        string $name = null,
+        string $title = null,
         string $foregroundColor = null,
         string $backgroundColor = null
     ) {
@@ -66,10 +68,21 @@ class WSDebugger {
             $colors[1] = $backgroundColor;
         }
 
-        if( $name ) {
-            echo $name . ": \n";
+        if( $title ) {
+            echo $title . ": \n";
         }
+
         echo self::toTerminal( $var, null, $colors );
+
+        // call event functions
+        if( self::$onDump ) {
+            foreach( self::$onDump as $dumpEvent ) {
+                if( !is_callable( $dumpEvent ) ) {
+                    throw new \LogicException( "Event onDump must be callable." );
+                }
+                call_user_func( $dumpEvent, $var, $title );
+            }
+        }
     }
 
     public static function toTerminal( $var, array $options = null, array $colors = [] ) {
