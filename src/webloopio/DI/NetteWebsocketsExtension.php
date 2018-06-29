@@ -70,6 +70,9 @@ class NetteWebsocketsExtension extends CompilerExtension {
                     ->setInject( true );
         }
 
+        //$instances = $builder->getDefinitions();
+        //wsdump($instances);
+
         // setup server (kdyby) commands
         $commands = [
             'server' => RunServerCommand::class,
@@ -84,6 +87,17 @@ class NetteWebsocketsExtension extends CompilerExtension {
         // We're passing down registered controller names
         $builder->addDefinition( $this->prefix( "server" ) )
                 ->setFactory( Server::class, [ $config['controllers'], $config['authentication'] ] );
+    }
+
+    public function beforeCompile() {
+        $builder = $this->getContainerBuilder();
+
+        // set inject=true for all controllers that was registered as service with tag
+        $controllers = $builder->findByTag( self::TAG_CONTROLLER );
+        foreach( $controllers as $controllerName => $tagAttributes ) {
+            $builder->getDefinition( $controllerName )
+                    ->setInject( true );
+        }
     }
 
 }
