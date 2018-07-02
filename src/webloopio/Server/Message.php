@@ -227,7 +227,7 @@ class Message implements IMessage, IMessageJson, IEnhancedMessage {
         }
         /** @var IMessageObject $dataObject */
         $dataObject = new $className();
-        $dataObject->setData( $this->getData() );
+        $dataObject->setData( $this->getData() ?? [] );
         $this->setMessageObject( $dataObject );
     }
 
