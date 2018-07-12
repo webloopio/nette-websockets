@@ -131,12 +131,12 @@ class ClientCollection implements \Countable {
     }
 
     /**
-     * @param int $userId
+     * @param mixed $userId
      *
      * @return null|IClientConnection
      */
-    public function getClientByUserId( int $userId ) {
-        $users = array_filter( $this->clients, function( Client $user ) use( $userId ) { return $user->getUserId() === $userId; } );
+    public function getClientByUserId( $userId ) {
+        $users = array_filter( $this->clients, function( Client $user ) use( $userId ) { return $user->getUserId() == $userId; } );
         return $users ? reset( $users ) : null;
     }
 
