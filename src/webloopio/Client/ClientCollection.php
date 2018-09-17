@@ -36,19 +36,26 @@ class ClientCollection implements \Countable {
      * @var null
      */
     private $authenticationType;
+    /**
+     * @var IClientFactory
+     */
+    private $clientFactory;
 
     /**
      * ClientCollection constructor.
      *
      * @param null $authenticationType
      * @param IAuthenticator|null $authenticator
+     * @param IClientFactory $clientFactory
      */
     function __construct(
         $authenticationType = null,
-        IAuthenticator $authenticator = null
+        IAuthenticator $authenticator = null,
+        IClientFactory $clientFactory
     ) {
         $this->authenticationType = $authenticationType;
         $this->authenticator = $authenticator;
+        $this->clientFactory = $clientFactory;
     }
 
     /**
@@ -60,7 +67,7 @@ class ClientCollection implements \Countable {
     public function addClient( ConnectionInterface $connection, IIdentity $identity = null ) {
         try {
             // TODO: handling multiple connections with same id
-            $client = new Client( $connection, $identity );
+            $client = $this->clientFactory->create( $connection, $identity );
 
             // set authenticator, if exists
             if( $this->authenticationType && $this->authenticator ) {

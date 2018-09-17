@@ -13,7 +13,9 @@ namespace Webloopio\NetteWebsockets\DI;
 
 use Kdyby\Console\DI\ConsoleExtension;
 use Nette\DI\CompilerExtension;
+use Webloopio\NetteWebsockets\Client\ClientFactory;
 use Webloopio\NetteWebsockets\Client\IAuthenticator;
+use Webloopio\NetteWebsockets\Client\IClientFactory;
 use Webloopio\NetteWebsockets\Client\IJWTAuthenticator;
 use Webloopio\NetteWebsockets\Console\RunServerCommand;
 use Webloopio\NetteWebsockets\Helper\StringHelper;
@@ -53,6 +55,10 @@ class NetteWebsocketsExtension extends CompilerExtension {
         // setup Controller dependencies
         $builder->addDefinition( $this->prefix( "clientCollection" ) )
                 ->setFactory( ClientCollection::class, $clientCollectionDeps );
+
+        $builder->addDefinition( $this->prefix( "clientFactory" ) )
+                ->setFactory( ClientFactory::class );
+
 
         // instantiate all Controllers defined in config
         foreach( $controllers as $controller ) {
@@ -97,6 +103,12 @@ class NetteWebsocketsExtension extends CompilerExtension {
         foreach( $controllers as $controllerName => $tagAttributes ) {
             $builder->getDefinition( $controllerName )
                     ->setInject( true );
+        }
+
+        // register library ClientFactory if none provided by user
+        $clientFactories = $builder->findByType( IClientFactory::class );
+        if( count($clientFactories) > 1 ) {
+            $builder->removeDefinition( $this->prefix( "clientFactory" ) );
         }
     }
 
